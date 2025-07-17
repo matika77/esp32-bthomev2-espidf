@@ -1,11 +1,11 @@
-
-#include <cstring>
 #include <string>
 #include "mbedtls/ccm.h"
-#include "esp_random.h"
+#include <host/ble_hs.h>
+
+using std::string;
 
 #define BLE_ADVERT_MAX_LEN 31
-#define MEASUREMENT_MAX_LEN 23 //23=31(BLE_ADVERT_MAX_LEN)-3(FLAG)-1(SERVICE_DATA)-2(UUID)-1(ENCRYPT)-1(serviceData length bit)
+#define MEASUREMENT_MAX_LEN 23 // 23=31(BLE_ADVERT_MAX_LEN)-3(FLAG)-1(SERVICE_DATA)-2(UUID)-1(ENCRYPT)-1(serviceData length bit)
 #define BIND_KEY_LEN 16
 #define NONCE_LEN 13
 #define MIC_LEN 4
@@ -113,35 +113,40 @@
 #define EVENT_DIMMER_LEFT 0x01
 #define EVENT_DIMMER_RIGHT 0x02
 
-class BTHome {
-  public:
-    void begin(const char* dname = "DIY-sensor", bool encryption = false, uint8_t const* const key = NULL, bool trigger_based_device = false);
-    void begin(const char* dname = "DIY-sensor", bool encryption = false, const char* key = "", bool trigger_based_device = false);
-    void end();
-    
-    void setDeviceName(const char* dname = "");
-    void buildPacket();
-    void start(uint32_t duration = 0);
-    void stop();
-    bool isAdvertising();
-    void resetMeasurement();
-    void sendPacket(uint32_t delay_ms = 1500);
-    void addMeasurement_state(uint8_t sensor_id, uint8_t state, uint8_t steps = 0);
-    void addMeasurement(uint8_t sensor_id, uint64_t value);
-    void addMeasurement(uint8_t sensor_id, float value);
+class BTHome
+{
+public:
+  void begin(std::string dname = "DIY-sensor", bool encryption = false, uint8_t const *const key = NULL, bool trigger_based_device = false);
+  void begin(std::string dname = "DIY-sensor", bool encryption = false, std::string key = "", bool trigger_based_device = false);
+  void end();
 
-  private:
-    uint8_t getByteNumber(uint8_t sens);
-    uint16_t getFactor(uint8_t sens);
-    uint8_t m_sensorDataIdx;
-    uint8_t m_sensorData[MEASUREMENT_MAX_LEN] = {0};
-    void sortSensorData();
-    std::string dev_name;
-    bool m_encryptEnable;
-    bool m_triggerdevice;
-    uint32_t m_encryptCount;
-    mbedtls_ccm_context m_encryptCTX;
-    uint8_t bindKey[BIND_KEY_LEN];
-    bool m_sortEnable;
-    uint8_t last_object_id;
+  void setDeviceName(std::string dname = "");
+  void buildPaket();
+  void start(uint32_t duration = BLE_HS_FOREVER);
+  void stop();
+  bool isAdvertising();
+  void resetMeasurement();
+  void sendPacket(uint32_t delay_ms = 1500);
+  void addMeasurement_state(uint8_t sensor_id, uint8_t state, uint8_t steps = 0);
+  void addMeasurement(uint8_t sensor_id, uint64_t value);
+  void addMeasurement(uint8_t sensor_id, float value);
+
+private:
+  uint8_t getByteNumber(uint8_t sens);
+  uint16_t getFactor(uint8_t sens);
+  void sortSensorData();
+  uint8_t m_sensorDataIdx;
+  uint8_t m_sensorData[MEASUREMENT_MAX_LEN] = {0};
+  std::string dev_name;
+  bool m_encryptEnable;
+  bool m_triggerdevice;
+  uint32_t m_encryptCount;
+  mbedtls_ccm_context m_encryptCTX;
+  uint8_t bindKey[BIND_KEY_LEN];
+  bool m_sortEnable;
+  uint8_t last_object_id;
+  bool nimble_initialized = false;
+
+  std::string adv_payload;
+  std::string adv_response_payload;
 };
