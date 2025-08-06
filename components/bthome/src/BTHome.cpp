@@ -327,12 +327,18 @@ void BTHome::buildPaket()
 
     nonce[6] = UUID1;
     nonce[7] = UUID2;
-    nonce[8] = ENCRYPT;
+    if (this->m_triggerdevice)
+      nonce[8] = ENCRYPT_TRIGGER_BASE;
+    else
+      nonce[8] = ENCRYPT;
+
     memcpy(&nonce[9], countPtr, 4);
+
     // encrypt sensorData
     mbedtls_ccm_encrypt_and_tag(&this->m_encryptCTX, this->m_sensorDataIdx, nonce, NONCE_LEN, 0, 0,
                                 &this->m_sensorData[0], &ciphertext[0], encryptionTag,
                                 MIC_LEN);
+
     for (i = 0; i < this->m_sensorDataIdx; i++)
     {
       serviceData += ciphertext[i];
